@@ -3,13 +3,12 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useAuthStore } from '@/store/authStore';
+import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { toast } from '@/hooks/use-toast';
 import { Bot, Eye, EyeOff, Loader2 } from 'lucide-react';
 
 const loginSchema = z.object({
@@ -21,7 +20,7 @@ type LoginForm = z.infer<typeof loginSchema>;
 
 const Login = () => {
   const navigate = useNavigate();
-  const { login, loginWithGoogle, isLoading } = useAuthStore();
+  const { signIn, signInWithGoogle, isLoading } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
 
   const {
@@ -33,37 +32,14 @@ const Login = () => {
   });
 
   const onSubmit = async (data: LoginForm) => {
-    try {
-      await login(data.email, data.password);
-      toast({
-        title: 'Welcome back!',
-        description: 'You have successfully signed in.',
-      });
+    const { error } = await signIn(data.email, data.password);
+    if (!error) {
       navigate('/dashboard');
-    } catch (error) {
-      toast({
-        title: 'Authentication failed',
-        description: 'Please check your credentials and try again.',
-        variant: 'destructive',
-      });
     }
   };
 
   const handleGoogleLogin = async () => {
-    try {
-      await loginWithGoogle();
-      toast({
-        title: 'Welcome!',
-        description: 'You have successfully signed in with Google.',
-      });
-      navigate('/dashboard');
-    } catch (error) {
-      toast({
-        title: 'Authentication failed',
-        description: 'Google sign-in was unsuccessful. Please try again.',
-        variant: 'destructive',
-      });
-    }
+    await signInWithGoogle();
   };
 
   return (

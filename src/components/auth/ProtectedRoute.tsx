@@ -1,7 +1,7 @@
 
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuthStore, UserRole } from '@/store/authStore';
+import { useAuth, UserRole } from '@/hooks/useAuth';
 import { Loader2 } from 'lucide-react';
 
 interface ProtectedRouteProps {
@@ -10,7 +10,7 @@ interface ProtectedRouteProps {
 }
 
 const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) => {
-  const { isAuthenticated, user, isLoading } = useAuthStore();
+  const { isAuthenticated, userProfile, isLoading } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -19,11 +19,11 @@ const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) => {
       return;
     }
 
-    if (user && allowedRoles && !allowedRoles.includes(user.role)) {
-      navigate('/unauthorized');
+    if (userProfile && allowedRoles && !allowedRoles.includes(userProfile.role)) {
+      navigate('/login');
       return;
     }
-  }, [isAuthenticated, user, allowedRoles, navigate, isLoading]);
+  }, [isAuthenticated, userProfile, allowedRoles, navigate, isLoading]);
 
   if (isLoading) {
     return (
@@ -40,7 +40,7 @@ const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) => {
     return null;
   }
 
-  if (allowedRoles && user && !allowedRoles.includes(user.role)) {
+  if (allowedRoles && userProfile && !allowedRoles.includes(userProfile.role)) {
     return null;
   }
 

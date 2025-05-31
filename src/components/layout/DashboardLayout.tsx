@@ -1,7 +1,6 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuthStore } from '@/store/authStore';
+import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
@@ -34,13 +33,12 @@ interface DashboardLayoutProps {
 }
 
 const DashboardLayout = ({ children }: DashboardLayoutProps) => {
-  const { user, logout } = useAuthStore();
+  const { userProfile, signOut } = useAuth();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  const handleLogout = () => {
-    logout();
-    navigate('/');
+  const handleLogout = async () => {
+    await signOut();
   };
 
   const getNavigationItems = () => {
@@ -50,7 +48,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
       { icon: MessageSquare, label: 'AI Chat', href: '/dashboard/chat' },
     ];
 
-    if (user?.role === 'agent') {
+    if (userProfile?.role === 'agent') {
       return [
         ...baseItems,
         { icon: Users, label: 'Ticket Queue', href: '/dashboard/queue' },
@@ -58,7 +56,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
       ];
     }
 
-    if (user?.role === 'admin') {
+    if (userProfile?.role === 'admin') {
       return [
         ...baseItems,
         { icon: Users, label: 'User Management', href: '/dashboard/users' },
@@ -119,15 +117,15 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
         <div className="p-6">
           <div className="flex items-center space-x-3 mb-6">
             <Avatar className="h-10 w-10">
-              <AvatarImage src={user?.avatar} alt={user?.name} />
+              <AvatarImage src={userProfile?.avatar} alt={userProfile?.name} />
               <AvatarFallback className="bg-blue-100 text-blue-600">
-                {user?.name?.charAt(0).toUpperCase()}
+                {userProfile?.name?.charAt(0).toUpperCase()}
               </AvatarFallback>
             </Avatar>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-slate-900 truncate">{user?.name}</p>
-              <Badge className={`text-xs ${getRoleColor(user?.role || '')}`}>
-                {user?.role?.charAt(0).toUpperCase() + user?.role?.slice(1)}
+              <p className="text-sm font-medium text-slate-900 truncate">{userProfile?.name}</p>
+              <Badge className={`text-xs ${getRoleColor(userProfile?.role || '')}`}>
+                {userProfile?.role?.charAt(0).toUpperCase() + userProfile?.role?.slice(1)}
               </Badge>
             </div>
           </div>
@@ -186,21 +184,21 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="flex items-center space-x-2">
                   <Avatar className="h-8 w-8">
-                    <AvatarImage src={user?.avatar} alt={user?.name} />
+                    <AvatarImage src={userProfile?.avatar} alt={userProfile?.name} />
                     <AvatarFallback className="bg-blue-100 text-blue-600 text-sm">
-                      {user?.name?.charAt(0).toUpperCase()}
+                      {userProfile?.name?.charAt(0).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
                   <span className="hidden md:block text-sm font-medium text-slate-700">
-                    {user?.name}
+                    {userProfile?.name}
                   </span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuLabel>
                   <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium">{user?.name}</p>
-                    <p className="text-xs text-slate-500">{user?.email}</p>
+                    <p className="text-sm font-medium">{userProfile?.name}</p>
+                    <p className="text-xs text-slate-500">{userProfile?.email}</p>
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />

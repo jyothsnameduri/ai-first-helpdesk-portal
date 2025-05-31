@@ -1,5 +1,4 @@
-
-import { useAuthStore } from '@/store/authStore';
+import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -16,10 +15,10 @@ import {
 } from 'lucide-react';
 
 const Dashboard = () => {
-  const { user } = useAuthStore();
+  const { userProfile } = useAuth();
 
   const getStatsCards = () => {
-    if (user?.role === 'employee') {
+    if (userProfile?.role === 'employee') {
       return [
         {
           title: 'My Open Tickets',
@@ -56,7 +55,7 @@ const Dashboard = () => {
       ];
     }
 
-    if (user?.role === 'agent') {
+    if (userProfile?.role === 'agent') {
       return [
         {
           title: 'Assigned Tickets',
@@ -131,7 +130,7 @@ const Dashboard = () => {
   };
 
   const getRecentActivity = () => {
-    if (user?.role === 'employee') {
+    if (userProfile?.role === 'employee') {
       return [
         {
           id: 1,
@@ -157,7 +156,7 @@ const Dashboard = () => {
       ];
     }
 
-    if (user?.role === 'agent') {
+    if (userProfile?.role === 'agent') {
       return [
         {
           id: 1,
@@ -249,19 +248,19 @@ const Dashboard = () => {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-slate-900">
-              Welcome back, {user?.name?.split(' ')[0]}!
+              Welcome back, {userProfile?.name?.split(' ')[0]}!
             </h1>
             <p className="text-slate-600 mt-1">
-              Here's what's happening with your {user?.role === 'admin' ? 'system' : 'tickets'} today.
+              Here's what's happening with your {userProfile?.role === 'admin' ? 'system' : 'tickets'} today.
             </p>
           </div>
-          {user?.role === 'employee' && (
+          {userProfile?.role === 'employee' && (
             <Button className="bg-blue-600 hover:bg-blue-700">
               <Plus className="w-4 h-4 mr-2" />
               Create Ticket
             </Button>
           )}
-          {user?.role === 'agent' && (
+          {userProfile?.role === 'agent' && (
             <Button className="bg-blue-600 hover:bg-blue-700">
               <MessageSquare className="w-4 h-4 mr-2" />
               View Queue
@@ -333,7 +332,7 @@ const Dashboard = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {user?.role === 'employee' && (
+                {userProfile?.role === 'employee' && (
                   <>
                     <Button variant="outline" className="w-full justify-start">
                       <Plus className="w-4 h-4 mr-2" />
@@ -349,7 +348,7 @@ const Dashboard = () => {
                     </Button>
                   </>
                 )}
-                {user?.role === 'agent' && (
+                {userProfile?.role === 'agent' && (
                   <>
                     <Button variant="outline" className="w-full justify-start">
                       <TicketIcon className="w-4 h-4 mr-2" />
@@ -365,7 +364,7 @@ const Dashboard = () => {
                     </Button>
                   </>
                 )}
-                {user?.role === 'admin' && (
+                {userProfile?.role === 'admin' && (
                   <>
                     <Button variant="outline" className="w-full justify-start">
                       <Users className="w-4 h-4 mr-2" />

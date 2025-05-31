@@ -1,17 +1,15 @@
-
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useAuthStore, UserRole } from '@/store/authStore';
+import { useAuth, UserRole } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
-import { toast } from '@/hooks/use-toast';
 import { Bot, Eye, EyeOff, Loader2 } from 'lucide-react';
 
 const signUpSchema = z.object({
@@ -30,7 +28,7 @@ type SignUpForm = z.infer<typeof signUpSchema>;
 
 const SignUp = () => {
   const navigate = useNavigate();
-  const { loginWithGoogle, isLoading } = useAuthStore();
+  const { signUp, signInWithGoogle, isLoading } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -44,39 +42,19 @@ const SignUp = () => {
   });
 
   const onSubmit = async (data: SignUpForm) => {
-    try {
-      // Mock sign-up - in real app this would call a sign-up API
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      toast({
-        title: 'Account created successfully!',
-        description: 'You can now sign in with your credentials.',
-      });
+    const { error } = await signUp(data.email, data.password, {
+      name: data.name,
+      role: data.role,
+      department: data.department,
+    });
+    
+    if (!error) {
       navigate('/login');
-    } catch (error) {
-      toast({
-        title: 'Sign-up failed',
-        description: 'Please try again or contact support.',
-        variant: 'destructive',
-      });
     }
   };
 
   const handleGoogleSignUp = async () => {
-    try {
-      await loginWithGoogle();
-      toast({
-        title: 'Welcome!',
-        description: 'Your account has been created successfully.',
-      });
-      navigate('/dashboard');
-    } catch (error) {
-      toast({
-        title: 'Sign-up failed',
-        description: 'Google sign-up was unsuccessful. Please try again.',
-        variant: 'destructive',
-      });
-    }
+    await signInWithGoogle();
   };
 
   return (
