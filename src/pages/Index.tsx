@@ -23,7 +23,7 @@ const Index = () => {
             <Button variant="ghost" onClick={() => navigate('/login')}>
               Sign In
             </Button>
-            <Button onClick={() => navigate('/login')} className="bg-blue-600 hover:bg-blue-700">
+            <Button onClick={() => navigate('/signup')} className="bg-blue-600 hover:bg-blue-700">
               Get Started
             </Button>
           </div>
@@ -50,7 +50,7 @@ const Index = () => {
           <div className="flex items-center justify-center space-x-4">
             <Button 
               size="lg" 
-              onClick={() => navigate('/login')} 
+              onClick={() => navigate('/signup')} 
               className="bg-blue-600 hover:bg-blue-700 px-8"
             >
               Access Portal

@@ -1,66 +1,79 @@
+
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useAuthStore } from '@/store/authStore';
+import { useAuthStore, UserRole } from '@/store/authStore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { toast } from '@/hooks/use-toast';
 import { Bot, Eye, EyeOff, Loader2 } from 'lucide-react';
 
-const loginSchema = z.object({
+const signUpSchema = z.object({
+  name: z.string().min(2, 'Name must be at least 2 characters'),
   email: z.string().email('Please enter a valid email address'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
+  confirmPassword: z.string(),
+  role: z.enum(['employee', 'agent', 'admin'] as const),
+  department: z.string().min(1, 'Please select a department'),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords don't match",
+  path: ["confirmPassword"],
 });
 
-type LoginForm = z.infer<typeof loginSchema>;
+type SignUpForm = z.infer<typeof signUpSchema>;
 
-const Login = () => {
+const SignUp = () => {
   const navigate = useNavigate();
-  const { login, loginWithGoogle, isLoading } = useAuthStore();
+  const { loginWithGoogle, isLoading } = useAuthStore();
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors },
-  } = useForm<LoginForm>({
-    resolver: zodResolver(loginSchema),
+  } = useForm<SignUpForm>({
+    resolver: zodResolver(signUpSchema),
   });
 
-  const onSubmit = async (data: LoginForm) => {
+  const onSubmit = async (data: SignUpForm) => {
     try {
-      await login(data.email, data.password);
+      // Mock sign-up - in real app this would call a sign-up API
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
       toast({
-        title: 'Welcome back!',
-        description: 'You have successfully signed in.',
+        title: 'Account created successfully!',
+        description: 'You can now sign in with your credentials.',
       });
-      navigate('/dashboard');
+      navigate('/login');
     } catch (error) {
       toast({
-        title: 'Authentication failed',
-        description: 'Please check your credentials and try again.',
+        title: 'Sign-up failed',
+        description: 'Please try again or contact support.',
         variant: 'destructive',
       });
     }
   };
 
-  const handleGoogleLogin = async () => {
+  const handleGoogleSignUp = async () => {
     try {
       await loginWithGoogle();
       toast({
         title: 'Welcome!',
-        description: 'You have successfully signed in with Google.',
+        description: 'Your account has been created successfully.',
       });
       navigate('/dashboard');
     } catch (error) {
       toast({
-        title: 'Authentication failed',
-        description: 'Google sign-in was unsuccessful. Please try again.',
+        title: 'Sign-up failed',
+        description: 'Google sign-up was unsuccessful. Please try again.',
         variant: 'destructive',
       });
     }
@@ -77,19 +90,33 @@ const Login = () => {
             </div>
             <span className="text-2xl font-bold text-slate-900">HelpDesk AI</span>
           </Link>
-          <h1 className="text-2xl font-bold text-slate-900 mb-2">Welcome back</h1>
-          <p className="text-slate-600">Sign in to access your helpdesk portal</p>
+          <h1 className="text-2xl font-bold text-slate-900 mb-2">Create your account</h1>
+          <p className="text-slate-600">Join the helpdesk portal today</p>
         </div>
 
         <Card className="border-0 shadow-xl">
           <CardHeader className="space-y-1 pb-6">
-            <CardTitle className="text-xl text-center">Sign in</CardTitle>
+            <CardTitle className="text-xl text-center">Sign up</CardTitle>
             <CardDescription className="text-center">
-              Enter your credentials to access your account
+              Create your account to get started
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">Full Name</Label>
+                <Input
+                  id="name"
+                  type="text"
+                  placeholder="Enter your full name"
+                  {...register('name')}
+                  className={errors.name ? 'border-red-500' : ''}
+                />
+                {errors.name && (
+                  <p className="text-sm text-red-500">{errors.name.message}</p>
+                )}
+              </div>
+
               <div className="space-y-2">
                 <Label htmlFor="email">Email address</Label>
                 <Input
@@ -105,12 +132,49 @@ const Login = () => {
               </div>
 
               <div className="space-y-2">
+                <Label htmlFor="role">Role</Label>
+                <Select onValueChange={(value) => setValue('role', value as UserRole)}>
+                  <SelectTrigger className={errors.role ? 'border-red-500' : ''}>
+                    <SelectValue placeholder="Select your role" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="employee">Employee</SelectItem>
+                    <SelectItem value="agent">Support Agent</SelectItem>
+                    <SelectItem value="admin">Administrator</SelectItem>
+                  </SelectContent>
+                </Select>
+                {errors.role && (
+                  <p className="text-sm text-red-500">{errors.role.message}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="department">Department</Label>
+                <Select onValueChange={(value) => setValue('department', value)}>
+                  <SelectTrigger className={errors.department ? 'border-red-500' : ''}>
+                    <SelectValue placeholder="Select your department" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="it">IT</SelectItem>
+                    <SelectItem value="hr">Human Resources</SelectItem>
+                    <SelectItem value="finance">Finance</SelectItem>
+                    <SelectItem value="operations">Operations</SelectItem>
+                    <SelectItem value="marketing">Marketing</SelectItem>
+                    <SelectItem value="sales">Sales</SelectItem>
+                  </SelectContent>
+                </Select>
+                {errors.department && (
+                  <p className="text-sm text-red-500">{errors.department.message}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
                 <div className="relative">
                   <Input
                     id="password"
                     type={showPassword ? 'text' : 'password'}
-                    placeholder="Enter your password"
+                    placeholder="Create a password"
                     {...register('password')}
                     className={errors.password ? 'border-red-500 pr-10' : 'pr-10'}
                   />
@@ -133,6 +197,35 @@ const Login = () => {
                 )}
               </div>
 
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword">Confirm Password</Label>
+                <div className="relative">
+                  <Input
+                    id="confirmPassword"
+                    type={showConfirmPassword ? 'text' : 'password'}
+                    placeholder="Confirm your password"
+                    {...register('confirmPassword')}
+                    className={errors.confirmPassword ? 'border-red-500 pr-10' : 'pr-10'}
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  >
+                    {showConfirmPassword ? (
+                      <EyeOff className="h-4 w-4 text-slate-400" />
+                    ) : (
+                      <Eye className="h-4 w-4 text-slate-400" />
+                    )}
+                  </Button>
+                </div>
+                {errors.confirmPassword && (
+                  <p className="text-sm text-red-500">{errors.confirmPassword.message}</p>
+                )}
+              </div>
+
               <Button
                 type="submit"
                 className="w-full bg-blue-600 hover:bg-blue-700"
@@ -141,10 +234,10 @@ const Login = () => {
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Signing in...
+                    Creating account...
                   </>
                 ) : (
-                  'Sign in'
+                  'Create account'
                 )}
               </Button>
             </form>
@@ -161,7 +254,7 @@ const Login = () => {
             <Button
               variant="outline"
               className="w-full"
-              onClick={handleGoogleLogin}
+              onClick={handleGoogleSignUp}
               disabled={isLoading}
             >
               <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
@@ -184,23 +277,14 @@ const Login = () => {
               </svg>
               Continue with Google
             </Button>
-
-            <div className="text-center text-sm text-slate-600">
-              <p>Demo credentials:</p>
-              <p className="text-xs mt-1">
-                Employee: employee@company.com<br />
-                Agent: agent@company.com<br />
-                Admin: admin@company.com
-              </p>
-            </div>
           </CardContent>
         </Card>
 
         <div className="text-center mt-6">
           <p className="text-sm text-slate-600">
-            Don't have an account?{' '}
-            <Link to="/signup" className="text-blue-600 hover:text-blue-700 font-medium">
-              Sign up
+            Already have an account?{' '}
+            <Link to="/login" className="text-blue-600 hover:text-blue-700 font-medium">
+              Sign in
             </Link>
           </p>
         </div>
@@ -209,4 +293,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default SignUp;
